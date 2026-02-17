@@ -1,4 +1,4 @@
-
+ 
 ## Namespace
 Namespaces are used to organized objects in a Kubernetes cluster.
 
@@ -97,3 +97,59 @@ kubectl config use-context my-test-context
 ```
 (Note that the context we created does not have some cluster and user and therefore kubectl will raise errors when you try to use it)
 
+## Kubernetes and RESTful API
+- **Kubernetes API Server**: Every cluster exposes a RESTful API at a base URL, e.g., `https://mydev.example.com` or in the above screenshots `http://127.0.01:60382`. 
+    
+- **kubectl**: A client that communicates with the API server using HTTPS and kubeconfig credentials. Every `kubectl` command is translated into a REST call.
+
+|Resource Scope|REST Path Pattern|Example|
+|---|---|---|
+|Namespaced|`/api/<version>/namespaces/<namespace>/<resource>/<name>`|Pod `kube-proxy` in `kube-system`: `/api/v1/namespaces/kube-system/pods/kube-proxy-hxk94`|
+|Cluster-scoped|`/api/<version>/<resource>/<name>`|Node `node-1`: `/api/v1/nodes/node-1`|
+|Custom Resource (CRD)|`/apis/<group>/<version>/namespaces/<namespace>/<resource>/<name>`|MyCRD in `default` namespace|
+
+So when you run:
+```shell
+kubectl get pod kube-proxy-hxk94 -n kube-system
+
+```
+
+It is getting translated to this request by `kubectl`:
+```http
+GET /api/v1/namespaces/kube-system/pods/kube-proxy-hxk94
+```
+
+
+## Kubectl View Commands
+The are few commands to view objects in the Kubernetes cluster:
+- get
+- describe
+
+For the get command here is the pattern:
+```shell
+kubectl get <resource>
+
+# if you want to view a particualr object of a resource type
+kubectl get <resource> <name> 
+```
+
+There are options to change output format that you can use in kubectl commands:
+- `-o wide` -> more details
+- `-o json` -> complete object info in JSON fromat
+- `-o yaml` -> complete object info in YAML format
+
+If you want to see more than one resource it can be done by adding `,`:
+```shell
+kubectl get pods,services
+```
+
+## Jsonpath
+There are many output formats for `kubectl`. One of them is `jsonpath` and it supports querying for a specific field of a Kubernetes resource.
+```shell
+kubectl get pod kube-proxy-hxk94 -n kube-system -o jsonpath='{.spec.containers[*].image}'
+```
+
+![[Pasted image 20260216173934.png]]
+
+Watch this:
+https://drive.google.com/file/d/1-DZDvQOAud-IHByWaiSczq1p0THcAvAL/view?usp=drive_link

@@ -110,7 +110,7 @@ kubectl get services -n kube-system -l k8s-app=kube-dns
 
 The Kubernetes DNS service load balances requests to DNS servers and makes DNS reliable, faster, and resilient inside the cluster.
 
-In the case of about, `10.96.0.10` is the IP address of the DNS service. All pods in the cluster use this IP address to make DNS queries.  They do not know the individual CoreDNS Pod IPs.
+In the case of above, `10.96.0.10` is the IP address of the DNS service. All pods in the cluster use this IP address to make DNS queries.  They do not know the individual CoreDNS Pod IPs.
 
 Every pod gets its DNS configuration automatically from the kubelet when it starts. This information is stored inside `/etc/resolve.conf` inside the pods:
 ```conf
