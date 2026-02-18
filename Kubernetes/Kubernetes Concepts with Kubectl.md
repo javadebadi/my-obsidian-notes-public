@@ -188,3 +188,13 @@ Labels and annotations are tags for Kubernetes objects.
 The `annotate` has similar syntax.
 
 ## Debugging Commands
+- `kubectl logs <pod-name> -c <container-name>` (viewing logs)
+- `kubectl logs <pod-name> -c <container-name> -f` (streaming logs)
+- `kubectl exec -it <pod-name> -c <container-name> -- bash` (interactive shell inside the container)
+- `kubectl attach -it <pod-name> -c <container-name>` (attach terminal to the container)
+- `kubectl cp <pod-name>:</path/to/remote/file> <path/to/local/file>` (copy file from container to local)
+- `kubectl port-forward <pod-name> 8080:80` (open a connection that forwards traffic from local machine on port 8080 to the remote container on port 80)
+- `kubectl get events (--watch)` Kubernetes events
+- `kubectl top nodes` (resources used by nodes)
+- `kubectl top pods` (resources used by pods)
+- 

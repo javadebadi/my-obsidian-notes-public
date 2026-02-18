@@ -62,6 +62,11 @@ kubectl describe pod myapp
 The output will show information about the pod, containers and finally the Events on the pod:
 ![[Pasted image 20260217222833.png]]
 
+### Access Logs
+- `kubectl logs myapp`
+- `kubectl exec myapp -- bash`
+
+[Video - Learn Basics of the Pods](https://drive.google.com/file/d/1uJy1eyg5oqa3DzU4B6PpHrKqvXyU7MSb/view?usp=drive_link)
 ## Delete the Pod
 ```shell
 kubectl delete -f myapp.yaml
