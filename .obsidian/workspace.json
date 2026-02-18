@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Kubernetes/Kubernetes Concepts with Kubectl.md",
+                "file": "Kubernetes/Pods.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Kubernetes Concepts with Kubectl"
+              "title": "Pods"
             }
           }
         ],
@@ -125,7 +125,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Kubernetes/Kubernetes Concepts with Kubectl.md",
+                "file": "Kubernetes/Pods.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -135,7 +135,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Kubernetes Concepts with Kubectl"
+              "title": "Backlinks for Pods"
             }
           },
           {
@@ -144,12 +144,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Kubernetes/Kubernetes Concepts with Kubectl.md",
+                "file": "Kubernetes/Pods.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from Kubernetes Concepts with Kubectl"
+              "title": "Outgoing links from Pods"
             }
           },
           {
@@ -187,13 +187,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Kubernetes/Kubernetes Concepts with Kubectl.md",
+                "file": "Kubernetes/Pods.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Kubernetes Concepts with Kubectl"
+              "title": "Outline of Pods"
             }
           }
         ]
@@ -216,19 +216,21 @@
   },
   "active": "d63d18ec941d9e22",
   "lastOpenFiles": [
+    "Pasted image 20260217222833.png",
+    "Pasted image 20260217222237.png",
+    "Pasted image 20260217220844.png",
+    "Pasted image 20260217215509.png",
+    "Pasted image 20260217215357.png",
+    "Kubernetes/Kubernetes Concepts with Kubectl.md",
+    "Kubernetes/Pods.md",
     "Kubernetes/Options for Learning Kubernetes.md",
     "Kubernetes/Sheet of All Commands.md",
-    "Kubernetes/Kubernetes Concepts with Kubectl.md",
     "Pasted image 20260216173934.png",
     "Pasted image 20260216170522.png",
     "Pasted image 20260216170432.png",
     "Pasted image 20260216160548.png",
     "Pasted image 20260216160508.png",
     "Pasted image 20260215235454.png",
-    "Pasted image 20260215235220.png",
-    "Pasted image 20260215235151.png",
-    "Pasted image 20260215233629.png",
-    "Pasted image 20260215231726.png",
     "Kubernetes"
   ]
 }

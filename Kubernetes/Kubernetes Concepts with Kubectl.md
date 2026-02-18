@@ -143,7 +143,12 @@ If you want to see more than one resource it can be done by adding `,`:
 kubectl get pods,services
 ```
 
-## Jsonpath
+Similarly the `describe` command gives more information about the object:
+```shell
+kubectl get <resource> <name> 
+```
+
+### Jsonpath
 There are many output formats for `kubectl`. One of them is `jsonpath` and it supports querying for a specific field of a Kubernetes resource.
 ```shell
 kubectl get pod kube-proxy-hxk94 -n kube-system -o jsonpath='{.spec.containers[*].image}'
@@ -153,3 +158,33 @@ kubectl get pod kube-proxy-hxk94 -n kube-system -o jsonpath='{.spec.containers[*
 
 Watch this:
 https://drive.google.com/file/d/1-DZDvQOAud-IHByWaiSczq1p0THcAvAL/view?usp=drive_link
+
+### Remove Headers
+One of the common tasks in working with `kubectl` is to pipe results to tools such as `awk` . The `--no-headers` removes headers from the printed results of `kubectl` which is makes it suitable for these kind of tasks.
+
+### Continuous Watching
+Using `--watch` with `kubectl get` command you can continuously observer the state of a Kubernetes resource until the event you are looking for starts to happen.
+
+### Explain
+To see list of all field available on a Kubernetes resource kind use `kubectl explain <resource>`
+
+```shell
+kubectl explain pods
+```
+
+
+## Kubectl CRUD commands
+There are few commands to create, update or delete resource in Kubernetes:
+- `kubectl apply -f <file-name.yaml>`
+- `kubectl edit <resource> <name>`
+- `kubectl delete <resource> <name>`
+
+## Labeling and Annotating
+Labels and annotations are tags for Kubernetes objects.
+- `kubectl label pods bar color=red`
+- `kubectl label pods bar color=blud --overwrite`
+- `kubectl label pods bar color-`
+
+The `annotate` has similar syntax.
+
+## Debugging Commands
