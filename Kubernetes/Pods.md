@@ -72,3 +72,51 @@ The output will show information about the pod, containers and finally the Event
 kubectl delete -f myapp.yaml
 ```
 When you delete a pod it is not being killed immediately, instead the state of the pod will be changed to `Terminated` and it will stop receiving  new requests. There is a grace shutdown period that allows the pod to finish the jobs that were running before being deleted.
+
+## Health Check
+The Kubernetes has a mechanism to check the main process of the container is running and if it was failed it will restart the container.
+However, that is just the minimum. For application-specific health checks you need to define new probes such as:
+- Liveness Probe 
+- Readiness Probe
+- Exec Probe
+- Startup Probe
+
+For example, here we have added an `exec` probe that every `10` seconds executes `curl http://localhost:80` and 
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+spec:
+  containers:
+    - image: nginx:alpine
+      name: myapp-nginx
+      ports:
+      - containerPort: 80
+        protocol: TCP
+        name: http
+      livenessProbe:
+        exec:
+          command:
+            - curl
+            - http://localhost:80
+        initialDelaySeconds: 5
+        failureThreshold: 3
+        periodSeconds: 10
+```
+
+and it waits `5` seconds before sending doing the livenessProbe, and after 3 consecutive failures it restarts the container. If the script returns 0 exit code then it succeeds otherwise it is a failure.
+
+For LivenessProb we can have something like this based on the routes defined the web server (assuming the container is web server):
+```yaml
+livenessProbe:
+  httpGet:
+    path: /healthy
+    port: 80
+  intialDelaySeconds: 5
+  timeoutSeconds: 1
+  periodSeconds: 10
+  failureThreshold: 3
+```
+
