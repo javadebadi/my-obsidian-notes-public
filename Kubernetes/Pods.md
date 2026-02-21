@@ -65,6 +65,7 @@ The output will show information about the pod, containers and finally the Event
 ### Access Logs
 - `kubectl logs myapp`
 - `kubectl exec myapp -- bash`
+- `kubectl logs myapp -f --timestamps` (logs stream with timestamps)
 
 [Video - Learn Basics of the Pods](https://drive.google.com/file/d/1uJy1eyg5oqa3DzU4B6PpHrKqvXyU7MSb/view?usp=drive_link)
 ## Delete the Pod
@@ -120,3 +121,71 @@ livenessProbe:
   failureThreshold: 3
 ```
 
+
+## Resource Management
+Kubernetes allows you to maximize utilization of your nodes. For this kubernetes has two constructs:
+- Resource requests: minimum amount of resources needed to run an application
+- Resource limits: maximum amount of resourced that application should consume.
+
+
+### Resource Requests
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+spec:
+  containers:
+    - image: nginx:alpine
+      name: myapp-nginx
+      ports:
+      - containerPort: 80
+        protocol: TCP
+        name: http
+      resources:
+        requests:
+          cpu: "500m"
+          memory: "128Mi"
+      livenessProbe:
+        exec:
+          command:
+            - curl
+            - http://localhost:80
+        initialDelaySeconds: 5
+        failureThreshold: 3
+        periodSeconds: 10
+```
+
+### Resource Limits
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+spec:
+  containers:
+    - image: nginx:alpine
+      name: myapp-nginx
+      ports:
+      - containerPort: 80
+        protocol: TCP
+        name: http
+      resources:
+        requests:
+          cpu: "500m"
+          memory: "128Mi"
+        limits:
+          cpu: "1000m"
+          memory: "256Mi"
+      livenessProbe:
+        exec:
+          command:
+            - curl
+            - http://localhost:80
+        initialDelaySeconds: 5
+        failureThreshold: 3
+        periodSeconds: 10
+```
+Here "500m" mean 500mili and therefore for CPU it means 0.5 CPU core. The "128Mi" means "128 MiB". Note that MiB is 1000 KiB and MB is 1024 KB.
+
+The resource is set per-container not per-pod.
