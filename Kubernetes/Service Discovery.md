@@ -67,4 +67,4 @@ Example Pod IPs:
 - 10.244.2.3
     
 
-kube-proxy chooses one (usually round-robin).
+kube-proxy chooses one (usually round-robin, a load balancing engine).
