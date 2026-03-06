@@ -68,3 +68,59 @@ Example Pod IPs:
     
 
 kube-proxy chooses one (usually round-robin, a load balancing engine).
+
+# Setup 
+Let's first create some Kubernetes objects for experimentation.
+Kubernetes has a concept called deployment which you can think of it as an instance of microservice. Each deployment can have many pods and they will be managed by Kubernetes.
+
+Let's create two deployments.
+```shell
+kubectl create deployment deployment-foo --image="nginx:alpine"
+
+kubectl scale deployment deployment-foo --replicas=3
+```
+
+```shell
+kubectl create deployment deployment-bar --image="nginx:alpine"
+
+kubectl scale deployment deployment-bar --replicas=2
+```
+
+After creating deployments we can check and see we have 5 pods:
+![[Pasted image 20260304091054.png]]
+
+And we use `kubectl expose` to create a service:
+```shell
+kubectl expose deployment deployment-foo
+
+kubectl expose deployment deployment-bar
+```
+
+Then we can check services `kubectl get svc`
+![[Pasted image 20260304091618.png]]
+
+# How the test DNS inside the cluster
+
+Run a temporary test pod
+```shell
+kubectl run dns-test --image=busybox:1.35 --rm -it -- sh
+```
+
+Inside the pod look for the service:
+```shell
+nslookup deployment-foo
+```
+![[Pasted image 20260304065049.png]]
+
+I can see the **A record**:
+```yaml
+Name: deployment-foo.default.svc.cluster.local
+Address: 10.98.195.23
+```
+
+You can also lookup for full DNS name:
+![[Pasted image 20260304065547.png]]
+
+
+# Readiness Check
+One of the things the service object can do is to track which pods are ready using **readiness check**.
