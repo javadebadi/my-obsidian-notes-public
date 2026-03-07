@@ -124,3 +124,44 @@ You can also lookup for full DNS name:
 
 # Readiness Check
 One of the things the service object can do is to track which pods are ready using **readiness check**.
+
+# Access to Pods from Outside of the Cluster
+Lets's first delete the created (exposed) service (or you can edit it using `kubectl edit` but we try to make things easier):
+```shell
+kubectl delete service deployment-foo
+```
+![[Pasted image 20260307131532.png]]
+
+and then re-expose the deployment using `--type=NodePort`
+```shell
+kubectl expose deployment deployment-foo --type=NodePort
+```
+![[Pasted image 20260307131650.png]]
+
+Now use `kubectl describe` to get details of the service
+```shell
+kubectl describe svc deployment-foo
+```
+![[Pasted image 20260307131735.png]]
+
+As you see the information for service:
+- NodePort: 30597
+- Pod Endpoint: 10.244.0.36:80
+
+To access this first we need the ip of the cluster. In case of minikube you can get the ip using
+```shell
+minikube ip
+```
+![[Pasted image 20260307132309.png]]
+
+For some minikube based on the driver type you can access the service using `http://<minikube_ip>:port` but if that is not reachable try this:
+
+```shell
+minikube service deployment-foo
+```
+![[Pasted image 20260307132758.png]]
+
+You see the `http://<minikube_ip>:port` which in this case is `http://192.168.49.2:30597` us accessible using tunnel in this url: `http://127.0.0.1:60174`
+![[Pasted image 20260307132946.png]]
+
+# Load Balancer
