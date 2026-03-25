@@ -98,7 +98,7 @@ You may have heard about **Redis** which is another key-value database. Here is 
 Now, that we are familiar with etcd let's investigate etcd and its role in a Kubernetes cluster.
 To continue we suggest to follow instruction [[Install K8 on VM|here]] to install a K8 on a VM in Google Cloud Platform
 
-## Task 1:
+## Task 1: Locate etcd in a running cluster
 
 
 > [!info]- Question 1.1: Confirm there is a pod for etcd running
@@ -108,7 +108,6 @@ To continue we suggest to follow instruction [[Install K8 on VM|here]] to instal
 > ```
 >  ![[etcd-gcp-vm-get-pod-for-etcd.png]]
 >
-
 
 > [!info]- Question 1.2: Find the etcd static pod manifest
 > Similar to other Kubernetes objects the etcd pod is also created by Kubernetes itself. The pod manifest is stored in `/etc/kubernetes/manifests/etcd.yaml`
@@ -124,14 +123,8 @@ To continue we suggest to follow instruction [[Install K8 on VM|here]] to instal
 > - **`--peer-*` files** These are for etcd-to-etcd communication in a multi-node cluster. You don't need these for `etcdctl` commands — ignore them for now.
 > So when you run `etcdctl` later, the pattern will always be:
 > ```shell
-> etcdctl \
-  --endpoints=https://127.0.0.1:2379 \
-  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
-  --cert=/etc/kubernetes/pki/etcd/server.crt \
-  --key=/etc/kubernetes/pki/etcd/server.key \
-  <command>
+> 
 > ```
-
 
 > [!info]- Question 1.3: Locate the data directory of etcd 
 > The answer for question 1.2 shows the location of etcd data as `--data-dir=/var/lib/etcd`
@@ -149,4 +142,91 @@ To continue we suggest to follow instruction [[Install K8 on VM|here]] to instal
 > ![[etcd-gcp-vm-find-certificates-location.png]]
 >
 > Note that in next step you will need path of `ca.crt`, `server.crt` and `server.key` to use `etcdctl` to access etcd database.
+
+## Task 2: Run your first etcdctl command
+
+> [!info]- Question 2.1: Install etcdctl client
+> First we check if etcdctl is installed
+> ```shell
+> etcdctl version
+> ```
+> ![[etcd-gcp-vm-etcdctl-check-version.png]]
+> If it is not installed you should install it:
+> ```shell
+> 	sudo apt-get install etcd-client
+> ```
+> ![[etcdctl-gcp-vm-install.png]]
+> Then check the version again:
+> ```shell
+> etcdctl --version
+> ```
+> 
+> ![[etcdctl-gcp-vm-version-2.png]]
+> To change API version (which we usually need) run:
+> ```shell
+> ETCDCTL_API=3 etcdctl version
+> ```
+> ![[etcdctl-gcp-vm-api-3-version.png]]
+> 
+
+
+> [!info]- Question 2.2: Check cluster health using etcdctl
+> To check the health you should run
+> ```shell
+> sudo ETCDCTL_API=3 etcdctl endpoint health \
+> --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+> --cert=/etc/kubernetes/pki/etcd/server.crt \
+> --key=/etc/kubernetes/pki/etcd/server.key \
+> 	--endpoints=https://127.0.0.1:2379
+> ```
+> ![[etcdctl-gcp-vm-etch-health-check.png]]
+
+
+
+> [!info]- Question 2.3: Check etcd status using etcdctl and interpret the results
+> To check the status you should run
+> ```shell
+> sudo ETCDCTL_API=3 etcdctl endpoint status \
+> --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+> --cert=/etc/kubernetes/pki/etcd/server.crt \
+> --key=/etc/kubernetes/pki/etcd/server.key \
+> --endpoints=https://127.0.0.1:2379
+> ```
+> ![[etcdctl-gcp-vm-check-status.png]]
+> 
+> - **`ID`** — unique identifier for this etcd member. In a multi-node cluster each member has a different ID.
+> - **`VERSION`** — etcd version `3.5.24`. Useful to know when the exam asks you to confirm etcd is running.
+> - **`DB SIZE`** — `3.6 MB` is the current size of the etcd database on disk. After a restore this will change — a good way to confirm the restore worked.
+> - **`IS LEADER`** — `true`. In a single-node cluster this is always true. In a 3-node HA cluster only one member is leader at a time — this is the one that processes all writes.
+> - **`RAFT TERM`** — `2`. Raft is the consensus algorithm etcd uses. The term increments every time a new leader election happens. `2` means there's been one election since the cluster started (term 1 = bootstrap, term 2 = first normal operation).
+> - **`RAFT INDEX`** — `25796`. This is the total number of operations ever committed to etcd. Every time Kubernetes creates, updates, or deletes an object, this number goes up. After a restore from an older snapshot, this number will be lower — which is expected and correct.
+> 
+> 
+
+## Task 3: Take Snapshot of etcd Database
+
+
+> [!info]- Question 3.1: Create a sample deployment and create a snapshot of etcd database
+>First let's create a deployment
+>```shell
+>kubectl create deployment deployment-foo --image=nginx:alpine --replicas=3
+>```
+>![[etcd-gcp-vm-sample-deployment.png]]
+>To create snapshot run:
+>```shell
+>sudo ETCDCTL_API=3 etcdctl snapshot save /opt/etcd-backup.db \
+--endpoints=https://127.0.0.1:2379 \
+--cacert=/etc/kubernetes/pki/etcd/ca.crt \
+--key=/etc/kubernetes/pki/etcd/server.key \
+--cert=/etc/kubernetes/pki/etcd/server.crt
+>```
+>![[etcd-gcp-vm-snapshot-save.png]]
+>
+
+> [!info]- Question 3.2: Verify the snapshot is valid
+> To verify the created snapshot is valid run
+> ```shell
+>sudo ETCDCTL_API=3 etcdctl snapshot status /opt/etcd-backup.db --write-out=table
+>```
+>![[etcd-gcp-vm-snapshot-verify.png]]
 
