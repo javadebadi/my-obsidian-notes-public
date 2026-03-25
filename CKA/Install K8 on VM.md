@@ -137,3 +137,10 @@ kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/
 kubectl get nodes
 ```
 ![[gcp-vm-verify-kubectl-get-nodes.png]]
+
+
+### Step 10: Remove taint for Single Cluster
+If you want to run a single cluster (which is reasonable for a lab setup) then you should run this command to allow pods being scheduled on the control-plane node:
+```shell
+kubectl taint nodes my-k8-cluster node-role.kubernetes.io/control-plane:NoSchedule-
+```
