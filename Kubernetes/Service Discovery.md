@@ -138,7 +138,7 @@ kubectl expose deployment deployment-foo --type=NodePort
 ```
 ![[Pasted image 20260307131650.png]]
 
-Now use `kubectl describe` to get details of the service
+	Now use `kubectl describe` to get details of the service
 ```shell
 kubectl describe svc deployment-foo
 ```
@@ -165,3 +165,10 @@ You see the `http://<minikube_ip>:port` which in this case is `http://192.168.49
 ![[Pasted image 20260307132946.png]]
 
 # Load Balancer
+So far we are familiar with these service types:
+- NodePort
+- ClusterIP
+
+There other type of services is:
+- LoadBalancer
+which you can use if your cluster is configured to integrate with external load balancer.
