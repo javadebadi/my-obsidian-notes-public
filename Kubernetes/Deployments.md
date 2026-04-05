@@ -1,6 +1,8 @@
 The Deployment object manages the release of new versions of an application. It is very close to daily routine of deployment by developers to rollout a new version and rollback to previous versions in case of errors.
 Kubernetes is an online, self-healing system. The top-level Deployment object is managing the ReplicaSet. The ReplicaSet manages the Pods. If we you delete a Pod manually the ReplicaSet controller will notice and create a new pod. If you scale down the ReplicaSet then the Deployment controller will notice and will re-scale the ReplicaSet.
 Similar to `ReplicaSet` the deployment can be scaled up or down using `kubectl scale deployment <deployment-name> --replicas=<new-count>`
+
+[Watch this video](https://drive.google.com/file/d/1SsoTYFCtprfgC2wgru3Q4UY-c6BHIv0Y/view?usp=drive_link)
 ## Deployment Updates
 Deployments make applications updates easier. To manage how applications are updated the update strategy is used. Default strategy is rolling update which updates application in batches.
 ```
