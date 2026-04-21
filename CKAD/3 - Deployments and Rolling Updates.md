@@ -1,5 +1,3 @@
-## Deployments and rolling updates
-
 You already know deployments basics, so we'll focus on the parts that actually appear on the exam — rolling updates, rollbacks, and scaling.
 
 **The key idea:** a deployment manages a ReplicaSet, which manages pods. When you update an image, Kubernetes creates a new ReplicaSet and gradually shifts pods from old to new — that's a rolling update
