@@ -49,4 +49,57 @@ To use this variables in Pods (or pods spec of deployments) in Pod spec:
 By using this in the pod and env variable named `POSTGRES_DB_PASSWORD` will be availabe in pod environment with value same as the value of `DB_PASSWORD` key in `myappvars` ConfigMap, i.e. `password` in case of above example.
 
 
+## ConfigMap from a File
+### Populating a volume with data stored in a ConfigMap
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dapi-test-pod
+spec:
+  containers:
+    - name: test-container
+      image: registry.k8s.io/busybox:1.27.2
+      command: [ "/bin/sh", "-c", "ls /etc/config/" ]
+      volumeMounts:
+      - name: config-volume
+        mountPath: /etc/config
+  volumes:
+    - name: config-volume
+      configMap:
+        # Provide the name of the ConfigMap containing the files you want
+        # to add to the container
+        name: special-config
+  restartPolicy: Never
 
+```
+
+When you create a ConfigMap using:
+
+```
+kubectl create configmap my-config --from-file=index.html
+```
+
+Kubernetes stores the **file content**, but also keeps the **filename as the key**.
+
+#### What happens when you mount it as a volume?
+
+If you mount that ConfigMap into a Pod, like:
+
+```
+volumeMounts:  - name: config-volume    mountPath: /usr/share/nginx/htmlvolumes:  - name: config-volume    configMap:      name: my-config
+```
+
+Then inside the container, you’ll get:
+
+```
+/usr/share/nginx/html/index.html
+```
+
+And yes — the contents of that file will be exactly the same as your original `index.html`.
+
+#### Important nuance
+
+- The **file name becomes the key**
+- The **file content becomes the value**
+- Each key is turned into a **file in the mounted directory**
