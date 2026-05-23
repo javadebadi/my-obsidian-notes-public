@@ -174,3 +174,77 @@ NGINX Ingress Controller  (one IP)
         │
 5. Ingress Rules        route by Host header           (same as local)
 ```
+
+
+## Ingress Types
+
+### Type 1 — Single Service
+One rule, one backend.
+```bash
+kubectl create ingress single --rule="/files=filesservice:80"
+```
+
+### Type 2 — Simple Fanout
+Same domain, multiple paths, different backends.
+```bash
+kubectl create ingress single \
+  --rule="/files=filesservice:80" \
+  --rule="/db=dbservice:80"
+```
+
+### Type 3 — Name-based Virtual Hosting
+Different domains (Host headers), different backends.
+```bash
+kubectl create ingress multihost \
+  --rule="my.example.com/files*=filesservice:80" \
+  --rule="my.example.org/data*=dataservice:80"
+```
+> `*` after path = wildcard — matches `/files`, `/files/anything`, etc.
+> Each domain must have a DNS entry (or /etc/hosts for local dev).
+
+### Summary
+
+| Type                       | Routing By         | When to Use                         |
+| -------------------------- | ------------------ | ----------------------------------- |
+| Single Service             | —                  | Expose one app                      |
+| Simple Fanout              | Path               | One domain, multiple backends       |
+| Name-based Virtual Hosting | Host header + path | Multiple domains, multiple backends |
+
+## Ingress Multihost — Full Example
+
+### 1. Create Deployments
+```bash
+kubectl create deploy mars --image=nginx
+kubectl create deploy saturn --image=httpd
+```
+
+### 2. Expose as Services
+```bash
+kubectl expose deploy mars --port=80
+kubectl expose deploy saturn --port=80
+```
+
+### 3. Add to /etc/hosts
+```bash
+echo "$(minikube ip) mars.example.com" | sudo tee -a /etc/hosts
+echo "$(minikube ip) saturn.example.com" | sudo tee -a /etc/hosts
+```
+
+### 4. Create Ingress
+```bash
+kubectl create ingress multihost \
+  --rule="mars.example.com/=mars:80" \
+  --rule="saturn.example.com/=saturn:80"
+```
+
+### 5. Fix pathType (imperative create defaults to ImplementationSpecific)
+```bash
+kubectl edit ingress multihost
+# change pathType to: Prefix
+```
+
+### 6. Test
+```bash
+curl mars.example.com
+curl saturn.example.com
+```
