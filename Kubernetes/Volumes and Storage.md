@@ -32,11 +32,19 @@ spec:
     path: "/mnt/data"
 
 ```
+and if we apply this manifest
+```shell
+❯ kubectl apply -f task-pv-volume.yaml
+persistentvolume/task-pv-volume created
+❯ k get pv task-pv-volume -o wide
+NAME             CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE   VOLUMEMODE
+task-pv-volume   1Gi        RWO            Retain           Available           manual         <unset>                          11s   Filesystem
+```
 ![[Pasted image 20260402180829.png]]
 
 And to create `PersistentVolumeClaim`:
 ```yaml
-apiVersion: v1
+apiVersion: v12
 kind: PersistentVolumeClaim
 metadata:
   name: task-pv-claim
@@ -147,3 +155,148 @@ A disk at the hardware level is just a sequence of dumb numbered blocks — no f
 | In your manifest      | Omit it — defaults to `Filesystem`                                                   | `volumeMode: Block`                                                            |
 
 
+### Access Modes
+**`accessModes`** defines how many nodes (or pods) can mount a volume simultaneously and whether they can write. It is a hardware constraint first — the mode you declare must match what your storage backend is physically capable of.
+
+Restriction is per **node** not per pod — except for RWOP which tightens it to per pod.
+
+|Mode|Short|Restriction|Write|Typical backend|
+|---|---|---|---|---|
+|`ReadWriteOnce`|RWO|1 node|yes|GCE PD, EBS, most block disks|
+|`ReadOnlyMany`|ROX|many nodes|no|NFS, shared config|
+|`ReadWriteMany`|RWX|many nodes|yes|NFS, GCP Filestore, CephFS|
+|`ReadWriteOncePod`|RWOP|1 pod|yes|any backend supporting RWO|
+
+**Key facts to remember:**
+
+- `RWO` is what you use 90% of the time
+- `RWX` is not a setting you can just turn on — block disks physically cannot mount on two nodes at once
+- `RWOP` is `RWO` but stricter — use it when you need to guarantee only one pod writes even during rolling updates where two pods briefly coexist on the same node
+- A PVC's accessMode must be a subset of the PV's accessModes for binding to succeed
+
+### Reclaim Policy
+**`reclaimPolicy`** controls what happens to the PV and its underlying storage when the PVC is deleted.
+
+|Policy|What happens|Use when|
+|---|---|---|
+|`Retain`|PV and data kept, PV goes to `Released` — not claimable again without manual intervention|Terraform manages the disk, or data must survive cluster deletion|
+|`Delete`|PV and actual underlying storage (e.g. GCE disk) deleted|Kubernetes manages the disk, ephemeral data|
+|`Recycle`|Data wiped, PV made available again|Deprecated — don't use|
+
+**Key decisions:**
+
+- Should this data outlive the Kubernetes cluster? → `Retain`
+- Is this ephemeral data tied to the app lifecycle? → `Delete`
+- Terraform-managed infrastructure? → always `Retain` to avoid state drift
+
+Default for manually created PVs is `Retain`. Default for dynamically provisioned PVs is `Delete`.
+
+- **Static provisioning** (you manually write PV) → default `Retain`
+- **Dynamic provisioning** (PVC + StorageClass, no manual PV) → default `Delete`
+
+## Persistent Volume Claim
+**PersistentVolumeClaim** is a request for storage. It doesn't care about the underlying storage type or infrastructure — it just declares requirements and Kubernetes finds a matching PV automatically.
+
+**Matching** is based on `storageClassName`, `accessModes`, and `capacity` — not by name, keeping the PVC decoupled from any specific PV.
+
+**Binding is exclusive** — one PV to one PVC. Once bound, that PV is fully reserved even if the PVC uses only a fraction of the capacity.
+
+**Kubernetes picks the smallest PV** that satisfies the request to avoid wasting storage.
+
+
+## Storage Class
+In Google Cloud Platform, I execute `kubectl get storageclass` and here is what we see there
+```shell
+sage@cloudshell:~ (main-k8)$ kubectl get storageclass
+NAME                        PROVISIONER                        RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+dynamic-rwo                 pd.csi.storage.gke.io              Delete          WaitForFirstConsumer   true                   15d
+enterprise-multishare-rwx   filestore.csi.storage.gke.io       Delete          WaitForFirstConsumer   true                   94d
+enterprise-rwx              filestore.csi.storage.gke.io       Delete          WaitForFirstConsumer   true                   94d
+gcsfusecsi-checkpointing    gcsfuse.csi.storage.gke.io         Delete          Immediate              false                  15d
+gcsfusecsi-serving          gcsfuse.csi.storage.gke.io         Delete          Immediate              false                  15d
+gcsfusecsi-training         gcsfuse.csi.storage.gke.io         Delete          Immediate              false                  15d
+parallelstore-rwx           parallelstore.csi.storage.gke.io   Delete          WaitForFirstConsumer   false                  94d
+premium-rwo                 pd.csi.storage.gke.io              Delete          WaitForFirstConsumer   true                   94d
+premium-rwx                 filestore.csi.storage.gke.io       Delete          WaitForFirstConsumer   true                   94d
+regional-rwx                filestore.csi.storage.gke.io       Delete          WaitForFirstConsumer   true                   94d
+standard                    kubernetes.io/gce-pd               Delete          Immediate              true                   94d
+standard-rwo (default)      pd.csi.storage.gke.io              Delete          WaitForFirstConsumer   true                   94d
+standard-rwo-regional       pd.csi.storage.gke.io              Delete          WaitForFirstConsumer   true                   94d
+standard-rwx                filestore.csi.storage.gke.io       Delete          WaitForFirstConsumer   true                   94d
+zonal-rwx                   filestore.csi.storage.gke.io       Delete          WaitForFirstConsumer   true                   94d
+```
+
+> [!NOTE]- Screenshot
+![[gcp-kubectl-get-storageclass.png]]
+
+- `pd.csi.storage.gke.io` → GCE Persistent Disk ✓
+- `filestore.csi.storage.gke.io` → GCP Filestore — this is **network file storage (NFS)**, not block. Notice all filestore StorageClasses are `rwx` — many nodes can mount simultaneously
+- `gcsfuse.csi.storage.gke.io` → you're right, GCS (object storage) ✓
+
+The interesting one is `gcsfuse` — you're correct that GCS is object storage. `gcsfuse` is a tool that **mounts a GCS bucket as if it were a filesystem**. It's a bridge — behind the scenes it's still object storage, but your app sees a normal path.
+`accessModes` on the PV defines what's _physically possible_. `RWX` means the underlying storage (Filestore/NFS) physically supports multiple nodes mounting simultaneously.
+
+The PVC binding rule (one PV to one PVC) still holds — only one PVC can claim that PV. But that one PVC can be used by **many pods across many nodes** simultaneously because the underlying storage supports it.
+
+So:
+
+- One PV → one PVC (always)
+- One PVC → many pods (if accessMode is RWX)
+
+
+**StorageClass** is a factory for PVs. Instead of manually creating PVs, you define a StorageClass once and Kubernetes creates PVs on demand when a PVC requests it.
+
+**Key fields:**
+
+- `provisioner` — which plugin creates the storage (e.g. `pd.csi.storage.gke.io` for GCE disk)
+- `reclaimPolicy` — default is `Delete` for dynamic provisioning
+- `volumeBindingMode` — `Immediate` creates storage right away, `WaitForFirstConsumer` waits until a pod is scheduled (important for zonal storage like GCE disks)
+- `allowVolumeExpansion` — whether you can resize the PVC later
+
+**The full chain:**
+
+StorageClass → PVC → Pod
+
+PV is created automatically by the provisioner — you never write it manually.
+
+**Admin vs developer split:**
+
+- Admin defines StorageClasses once
+- Developer just picks one by name in their PVC
+
+**Default StorageClass** — if your PVC omits `storageClassName`, it uses the cluster's default. In your GKE cluster that's `standard-rwo`.
+
+### Define Storage Class
+When using GKE, Google pre-installs StorageClasses for you. But you can define your own if you need different behavior — same provisioner, different parameters.
+
+Common reason to define a custom one: changing `reclaimPolicy` from `Delete` to `Retain` for data that must survive PVC deletion.
+
+In GKE, Google pre-installs the default StorageClasses for you — nobody on your team wrote them. But you _can_ define your own if the defaults don't fit your needs. For example if you want a StorageClass with `Retain` policy instead of `Delete`:
+
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standard-rwo-retain
+provisioner: pd.csi.storage.gke.io
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+```
+
+Same provisioner as `standard-rwo`, just different reclaim policy. Then developers use `standard-rwo-retain` in their PVC when data must survive PVC deletion.
+
+And in GCP we can create PVC using this:
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mypvc
+spec:
+  storageClassName: standard-rwo-retain
+  resources:
+    requests:
+      storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+```
