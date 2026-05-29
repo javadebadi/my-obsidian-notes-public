@@ -1,4 +1,4 @@
-Regular pods run forever and if they fail Kubernetes will restart them. This is appropriate for long-running processes such as web server or database applications.
+defgrgfbdew12Regular pods run forever and if they fail Kubernetes will restart them. This is appropriate for long-running processes such as web server or database applications.
 For one-off tasks Kubernetes has **Job** object which creates a pod that is short lived and will be terminated after a successful completion. If the pod fails before a successful termination then Job controller will create another pod based on the template.
 
 ## Job Patterns
@@ -59,8 +59,6 @@ Now if you check pods you can see the pod of the job was deleted:
 ![[k8-job-one-shot-get-pods-3.png]]
 Also this will delete the job too:
 ![[k8-job-one-shot-get-jobs-3.png]]
-
-
 
 ### Parallelism
 
