@@ -1,0 +1,5 @@
+@media print {
+  .callout.is-collapsible .callout-content {
+    display: none !important;
+  }
+}
