@@ -135,10 +135,10 @@ spec:
 
 
 ## Different Kind of Volumes
-| Volume Type                     | Purpose / Problem Solved                                         | Typical Use Cases                                  | Mental Model / Analogy                                  |
-| ------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------- |
-| **emptyDir**                    | Temporary sharing of data between containers in the same Pod     | Cache, logs, scratch space between containers      | Like a shared `/tmp` folder for processes in a Pod      |
-| **hostPath**                    | Direct access to the node's filesystem (local debugging/testing) | Access host logs, Docker socket, local experiments | Like giving a process access to `/var/log` on host      |
-| **PersistentVolume (PV) + PVC** | Persistent storage that survives Pod restarts                    | Databases, file storage, user uploads              | Like attaching an external USB drive to a process       |
-| **ConfigMap / Secret**          | Inject configuration or secrets into containers at runtime       | app.yaml, API keys, SSL certificates               | Like giving a process a read-only config folder         |
-| **Cloud / Networked volumes**   | Shared persistent storage across multiple nodes or Pods          | NFS, AWS EBS, GCE Persistent Disk, Ceph            | Like a network drive accessible from multiple computers |
+| Volume Type                     | Purpose / Problem Solved                                                                          | Typical Use Cases                                  | Mental Model / Analogy                                  |
+| ------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------- |
+| **emptyDir**                    | Temporary sharing of data between containers in the same Pod                                      | Cache, logs, scratch space between containers      | Like a shared `/tmp` folder for processes in a Pod      |
+| **hostPath**                    | Direct access to the node's filesystem (local debugging/testing) - not recommended for production | Access host logs, Docker socket, local experiments | Like giving a process access to `/var/log` on host      |
+| **PersistentVolume (PV) + PVC** | Persistent storage that survives Pod restarts                                                     | Databases, file storage, user uploads              | Like attaching an external USB drive to a process       |
+| **ConfigMap / Secret**          | Inject configuration or secrets into containers at runtime                                        | app.yaml, API keys, SSL certificates               | Like giving a process a read-only config folder         |
+| **Cloud / Networked volumes**   | Shared persistent storage across multiple nodes or Pods                                           | NFS, AWS EBS, GCE Persistent Disk, Ceph            | Like a network drive accessible from multiple computers |
