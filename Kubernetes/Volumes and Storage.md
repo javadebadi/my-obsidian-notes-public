@@ -40,6 +40,9 @@ persistentvolume/task-pv-volume created
 NAME             CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE   VOLUMEMODE
 task-pv-volume   1Gi        RWO            Retain           Available           manual         <unset>                          11s   Filesystem
 ```
+
+
+> [!NOTE]- Screenshot
 ![[Pasted image 20260402180829.png]]
 
 And to create `PersistentVolumeClaim`:
@@ -57,7 +60,9 @@ spec:
       storage: 3Gi
 
 ```
-]![[Pasted image 20260402182936.png]]
+
+> [!NOTE]- Screenshot
+![[Pasted image 20260402182936.png]]
 
 
 And then we can create a pod:
